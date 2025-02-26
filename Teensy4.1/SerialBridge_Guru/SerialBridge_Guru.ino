@@ -2,23 +2,23 @@
 #include <PID_v1.h>
 
 // Motor 1  driver pins
-#define PWM1 5   // Left Motor PWM
-#define DIR1 6  // Left Motor Direction
+#define PWM1 0   // Left Motor PWM
+#define DIR1 1 // Left Motor Direction
 
 // Motor 2  driver pins
-#define PWM2 9   // Right Motor PWM
-#define DIR2 10   // Right Motor Direction
+#define PWM2 2  // Right Motor PWM
+#define DIR2 3   // Right Motor Direction
  
 // Encoder 1 pins
-#define ENC1_A 3 // Left Motor (Motor 1) Encoder A
-#define ENC1_B 2 // Left Motor (Motor 1) Encoder B
+#define ENC1_A 6 // Left Motor (Motor 1) Encoder A
+#define ENC1_B 8 // Left Motor (Motor 1) Encoder B
 
 // Encoder 2 pins
-#define ENC2_A 7  // Right Motor (Motor 2) Encoder A
-#define ENC2_B 4 // Right Motor (Motor 2) Encoder B
+#define ENC2_A 4  // Right Motor (Motor 2) Encoder A
+#define ENC2_B 5 // Right Motor (Motor 2) Encoder B
  
 // Encoder constants
-#define CPR 155500       
+#define CPR 25916       
 #define SAMPLE_TIME 100  
 
 // PID Tuning Parameters
@@ -43,7 +43,7 @@ unsigned long prevTime = 0;
 // Compute RPM function
 double computeRPM(long deltaCount, int motorID) {
     double timeFactor = (60000.0 / SAMPLE_TIME);
-    return (deltaCount * timeFactor) / CPR;
+    return -(deltaCount * timeFactor) / CPR;
 }
 
 // **NEW: Function to Continuously Read Incoming Setpoint**
@@ -67,8 +67,8 @@ void setup() {
     pid1.SetMode(AUTOMATIC);
     pid2.SetMode(AUTOMATIC);
 
-    pid1.SetOutputLimits(0, 255);  
-    pid2.SetOutputLimits(0, 255);  
+    pid1.SetOutputLimits(-255, 255);  
+    pid2.SetOutputLimits(-255, 255);  
 
     Serial.println("PID Speed Control with ROS2 Integration");
 }

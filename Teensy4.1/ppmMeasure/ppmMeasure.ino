@@ -1,20 +1,22 @@
 #include <Encoder.h>
 
 // Motor 1 driver pins (Left Motor)
-#define PWM1 5   
-#define DIR1 6  
+// Motor 1  driver pins
+#define PWM1 5   // Left Motor PWM
+#define DIR1 6  // Left Motor Direction
 
-// Motor 2 driver pins (Right Motor)
-#define PWM2 9   
-#define DIR2 10  
+// Motor 2  driver pins
+#define PWM2 9   // Right Motor PWM
+#define DIR2 10   // Right Motor Direction
+ 
+// Encoder 1 pins
+#define ENC1_A 3 // Left Motor (Motor 1) Encoder A
+#define ENC1_B 2 // Left Motor (Motor 1) Encoder B
 
-// Encoder 1 pins (Left Motor)
-#define ENC1_A 2  
-#define ENC1_B 3  
-
-// Encoder 2 pins (Right Motor)
-#define ENC2_A 4  
-#define ENC2_B 7  
+// Encoder 2 pins
+#define ENC2_A 7  // Right Motor (Motor 2) Encoder A
+#define ENC2_B 4 // Right Motor (Motor 2) Encoder B
+ 
 
 // Create encoder objects
 Encoder motor1Encoder(ENC1_A, ENC1_B);

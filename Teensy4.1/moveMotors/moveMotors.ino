@@ -1,11 +1,13 @@
 #include <Arduino.h>
 #include <Encoder.h>
 
-// Define motor driver pins (Updated for correct movement)
-#define PWM1 9   // Left Motor (Motor 1) PWM
-#define DIR1 10  // Left Motor (Motor 1) Direction
-#define PWM2 5   // Right Motor (Motor 2) PWM
-#define DIR2 6   // Right Motor (Motor 2) Direction
+// Motor 1  driver pins
+#define PWM1 5   // Left Motor PWM
+#define DIR1 6  // Left Motor Direction
+
+// Motor 2  driver pins
+#define PWM2 9   // Right Motor PWM
+#define DIR2 10   // Right Motor Direction
 
 // Define encoder pins
 #define ENC1_A 2
