@@ -1,26 +1,27 @@
 #include <Encoder.h>
 
-// Motor 1  driver pins
+// Motor 1 driver pins
 #define PWM1 5   // Left Motor PWM
-#define DIR1 6  // Left Motor Direction
+#define DIR1 6   // Left Motor Direction
 
-// Motor 2  driver pins
+// Motor 2 driver pins
 #define PWM2 9   // Right Motor PWM
-#define DIR2 10   // Right Motor Direction
- 
+#define DIR2 10  // Right Motor Direction
+
 // Encoder 1 pins
-#define ENC1_A 3 // Left Motor (Motor 1) Encoder A
-#define ENC1_B 2 // Left Motor (Motor 1) Encoder B
+#define ENC1_A 2 // Left Motor (Motor 1) Encoder A
+#define ENC1_B 3 // Left Motor (Motor 1) Encoder B
 
 // Encoder 2 pins
-#define ENC2_A 7  // Right Motor (Motor 2) Encoder A
+#define ENC2_A 7 // Right Motor (Motor 2) Encoder A
 #define ENC2_B 4 // Right Motor (Motor 2) Encoder B
- 
+
 // Encoder constants
-#define CPR 155500      // Counts Per Revolution
-#define GEAR_RATIO 102  // 1:13 gear ratio
-#define WHEEL_RADIUS 0.075  // Wheel radius in meters
+#define CPR 153500     // Counts Per Revolution (CPR for the motor shaft)
 #define SAMPLE_TIME 120    // Sampling time in milliseconds (reduced for faster updates)
+
+// Wheel constants
+#define WHEEL_RADIUS 0.075  // Wheel radius in meters (provided)
 
 // Create encoder objects
 Encoder motor1Encoder(ENC1_A, ENC1_B);
@@ -29,94 +30,67 @@ Encoder motor2Encoder(ENC2_A, ENC2_B);
 // Variables for tracking encoder counts
 long prevCount1 = 0, prevCount2 = 0;
 unsigned long prevTime = 0;
+float motor1RPM = 0, motor2RPM = 0;
+float motor1Velocity = 0, motor2Velocity = 0;  // Linear velocities of the motors (m/s)
 
-// Function to calculate and print RPM & velocity
-void printRPMVelocity(String movement) {
-    long count1 = motor1Encoder.read();
-    long count2 = motor2Encoder.read();
-
-    // No need to Fix Motor 2's negative RPM issue
-    float rpm1 = (count1 * 60.0) / CPR;
-    float rpm2 = (count2 * 60.0) / CPR;  // Inverted
-
-    // Convert RPM to linear velocity (m/s)
-    float velocity1 = rpm1 * (2 * 3.14159 * WHEEL_RADIUS) / 60.0;
-    float velocity2 = rpm2 * (2 * 3.14159 * WHEEL_RADIUS) / 60.0;
-
-    // Print values after movement
-    Serial.print(movement + " -> Motor 1 RPM: "); 
-    Serial.print(rpm1);
-    Serial.print(", Velocity: "); Serial.print(velocity1); Serial.print(" m/s  ||  ");
-    Serial.print("Motor 2 RPM: "); 
-    Serial.println(rpm2);
-    Serial.print(", Velocity: "); Serial.println(velocity2); Serial.print(" m/s");
-
-    // Reset encoder counts for the next movement
-    motor1Encoder.write(0);
-    motor2Encoder.write(0);
-}
+// PWM values to control motor speed (0-255)
+int pwmValue1 = 25;  // Motor 1 PWM (50% speed as an example)
+int pwmValue2 = 25;  // Motor 2 PWM (50% speed as an example)
 
 void setup() {
-    Serial.begin(115200);
+  Serial.begin(9600);
+  pinMode(PWM1, OUTPUT);
+  pinMode(DIR1, OUTPUT);
+  pinMode(PWM2, OUTPUT);
+  pinMode(DIR2, OUTPUT);
 
-    pinMode(PWM1, OUTPUT);
-    pinMode(DIR1, OUTPUT);
-    pinMode(PWM2, OUTPUT);
-    pinMode(DIR2, OUTPUT);
+  // Set initial PWM values for the motors
+  analogWrite(PWM1, pwmValue1);
+  analogWrite(PWM2, pwmValue2);
 
-    Serial.println("Motor test begins!");
+  // Set motor directions to forward (HIGH or LOW depends on your motor driver)
+  digitalWrite(DIR1, HIGH); // Motor 1 forward
+  digitalWrite(DIR2, HIGH); // Motor 2 forward
 }
 
 void loop() {
-    // Move forward
-    Serial.println("Moving Forward...");
-    moveMotors(120, 120);
-    delay(2000);
-    moveMotors(0, 0);
-    printRPMVelocity("FORWARD");
+  unsigned long currentTime = millis();
 
-    // // Move backward
-    // Serial.println("Moving Backward...");
-    // moveMotors(-120, -120);
-    // delay(2000);
-    // moveMotors(0, 0);
-    // printRPMVelocity("BACKWARD");
+  // Check if it's time to sample
+  if (currentTime - prevTime >= SAMPLE_TIME) {
+    long count1 = motor1Encoder.read();  // Read encoder count for motor 1
+    long count2 = motor2Encoder.read();  // Read encoder count for motor 2
 
-    // // Turn left
-    // Serial.println("Turning Left...");
-    // moveMotors(-120, 120);
-    // delay(2000);
-    // moveMotors(0, 0);
-    // printRPMVelocity("LEFT TURN");
+    // Calculate RPM for motor 1 and motor 2
+    // Convert SAMPLE_TIME to seconds by dividing by 1000
+    float sampleTimeInSeconds = SAMPLE_TIME / 1000.0;
 
-    // // Turn right
-    // Serial.println("Turning Right...");
-    // moveMotors(120, -120);
-    // delay(2000);
-    // moveMotors(0, 0);
-    // printRPMVelocity("RIGHT TURN");
+    motor1RPM = (float)(count1 - prevCount1) * 60.0 / (CPR * sampleTimeInSeconds);
+    motor2RPM = (float)(count2 - prevCount2) * 60.0 / (CPR * sampleTimeInSeconds);
 
-    // // Stop for 2 seconds
-    // Serial.println("Stopping...");
-    // moveMotors(0, 0);
-    // delay(2000);
-}
+    // Calculate linear velocity in m/s for motor 1 and motor 2
+    // Convert RPM to radians per second, then multiply by wheel radius to get velocity
+    motor1Velocity = (motor1RPM * 2 * PI / 60) * WHEEL_RADIUS;
+    motor2Velocity = (motor2RPM * 2 * PI / 60) * WHEEL_RADIUS;
 
-// Function to control motors
-void moveMotors(int speed1, int speed2) {
-    if (speed1 >= 0) {
-        digitalWrite(DIR1, HIGH);
-        analogWrite(PWM1, speed1);
-    } else {
-        digitalWrite(DIR1, LOW);
-        analogWrite(PWM1, -speed1);
-    }
+    // Update previous encoder counts
+    prevCount1 = count1;
+    prevCount2 = count2;
 
-    if (speed2 >= 0) {
-        digitalWrite(DIR2, HIGH);
-        analogWrite(PWM2, speed2);
-    } else {
-        digitalWrite(DIR2, LOW);
-        analogWrite(PWM2, -speed2);
-    }
+    // Output the RPM and velocity values for both motors
+    Serial.print("Motor 1 RPM: ");
+    Serial.println(motor1RPM);
+
+    Serial.print("Motor 1 Linear Velocity (m/s): ");
+    Serial.println(motor1Velocity);
+
+    Serial.print("Motor 2 RPM: ");
+    Serial.println(motor2RPM);
+
+    Serial.print("Motor 2 Linear Velocity (m/s): ");
+    Serial.println(motor2Velocity);
+
+    // Update the previous time
+    prevTime = currentTime;
+  }
 }

@@ -67,8 +67,8 @@ void setup() {
     pid1.SetMode(AUTOMATIC);
     pid2.SetMode(AUTOMATIC);
 
-    pid1.SetOutputLimits(-255, 255);  
-    pid2.SetOutputLimits(-255, 255);  
+    pid1.SetOutputLimits(0, 255);  
+    pid2.SetOutputLimits(0, 255);  
 
     Serial.println("PID Speed Control with ROS2 Integration");
 }
